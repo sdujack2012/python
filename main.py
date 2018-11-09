@@ -19,13 +19,20 @@ class NeuralNetwork:
             self.weights.append(np.random.rand(
                 self.layers[i-1], self.layers[i]))
 
+    def feedforward(self, input, target):
+        self.outputs = [input]
+        for i in range(0, len(self.weights)):
+            output_temp = sigmoid(np.dot(self.outputs[i], self.weights[i]))
+            self.outputs.append(output_temp)
+        print(self.outputs[len(self.outputs)-1].tolist())
+
     def train(self, input, target):
         self.outputs = [input]
         for i in range(0, len(self.weights)):
-            self.outputs.append(
-                sigmoid(np.dot(self.outputs[i], self.weights[i])))
+            output_temp = sigmoid(np.dot(self.outputs[i], self.weights[i]))
+            self.outputs.append(output_temp)
+        # print(self.outputs[len(self.outputs)-1].tolist())
 
-        print(self.outputs[len(self.outputs)-1].tolist())
         numberOfLayer = len(self.weights)
         self.output_deltas = [None]*numberOfLayer
         self.output_deltas[numberOfLayer-1] = (
@@ -44,14 +51,7 @@ class NeuralNetwork:
 def readTrainingImages():
     with open("train-images.idx3-ubyte", "rb") as f:
         f.read(16)
-        byteArray = f.read()
-        images = []
-        n = 28*28
-
-        for i in range(0, len(byteArray), n):
-            images.append(list(map(float, byteArray[i:i + n])))
-
-        return np.array(images)/255
+        return np.array(list(map(lambda x: float(x)/255, f.read()))).reshape(60000, 784)
 
 
 def readTrainingLabels():
@@ -60,8 +60,8 @@ def readTrainingLabels():
         byteArray = f.read()
         labels = []
         for i in range(0, len(byteArray)):
-            label = [0] * 10
-            label[byteArray[i]] = 1
+            label = [0.0] * 10
+            label[byteArray[i]] = 1.0
             labels.append(label)
 
         return np.array(labels)
@@ -86,11 +86,14 @@ def readTestingLabels():
 
 input = readTrainingImages()
 target = readTrainingLabels()
-network = NeuralNetwork([28*28, 600, 10], 0.5)
+network = NeuralNetwork([28*28, 100, 10], 0.5)
 network.train(input, target)
 
-for x in range(0, 10):
+for x in range(0, 500):
+    print(x)
     network.train(input, target)
 
+network.feedforward(input, target)
 
+print()
 # # network.feedforward()
